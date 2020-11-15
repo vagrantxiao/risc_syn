@@ -307,8 +307,6 @@ module axi4_memory #(
 	output reg        tests_passed
 );
 	reg [31:0]   memory [0:128*1024/4-1] /* verilator public */;
-	reg verbose;
-	initial verbose = $test$plusargs("verbose") || VERBOSE;
 
 	reg axi_test;
 	initial axi_test = $test$plusargs("axi_test") || AXI_TEST;
@@ -382,9 +380,7 @@ module axi4_memory #(
 	end endtask
 
 	task handle_axi_rvalid; begin
-		if (verbose)
-			//$display("RD: ADDR=%08x DATA=%08x%s", latched_raddr, memory[latched_raddr >> 2], latched_rinsn ? " INSN" : "")
-			;
+		
 		if (latched_raddr < 128*1024) begin
 			mem_axi_rdata <= memory[latched_raddr >> 2];
 			mem_axi_rvalid <= 1;
@@ -396,9 +392,7 @@ module axi4_memory #(
 	end endtask
 
 	task handle_axi_bvalid; begin
-		if (verbose)
-			//$display("WR: ADDR=%08x DATA=%08x STRB=%04b", latched_waddr, latched_wdata, latched_wstrb)
-			;
+		
 		if (latched_waddr < 128*1024) begin
 			if (latched_wstrb[0]) memory[latched_waddr >> 2][ 7: 0] <= latched_wdata[ 7: 0];
 			if (latched_wstrb[1]) memory[latched_waddr >> 2][15: 8] <= latched_wdata[15: 8];
@@ -406,27 +400,11 @@ module axi4_memory #(
 			if (latched_wstrb[3]) memory[latched_waddr >> 2][31:24] <= latched_wdata[31:24];
 		end else
 		if (latched_waddr == 32'h1000_0000) begin
-			if (verbose) begin
-				if (32 <= latched_wdata && latched_wdata < 128)
-					//$display("OUT: '%c'", latched_wdata[7:0])
-					;
-				else
-					//$display("OUT: %3d", latched_wdata)
-					;
-			end else begin
-				$write("%c", latched_wdata[7:0])
-				;
-`ifndef VERILATOR
-				$fflush();
-`endif
-			end
+				$write("%c", latched_wdata[7:0]);
 		end else
 		if (latched_waddr == 32'h2000_0000) begin
 			if (latched_wdata == 123456789)
 				tests_passed = 1;
-		end else begin
-			//$display("OUT-OF-BOUNDS MEMORY WRITE TO %08x", latched_waddr);
-			$finish;
 		end
 		mem_axi_bvalid <= 1;
 		latched_waddr_en = 0;
