@@ -263,7 +263,7 @@ module picorv32_wrapper #(
 `endif
 			//$display("TRAP after %1d clock cycles", cycle_counter);
 			if (tests_passed) begin
-				//$display("ALL TESTS PASSED.");
+				$display("ALL TESTS PASSED.");
 				$finish;
 			end else begin
 				//$display("ERROR!");
@@ -308,9 +308,7 @@ module axi4_memory #(
 );
 	reg [31:0]   memory [0:128*1024/4-1] /* verilator public */;
 
-	reg axi_test;
-	initial axi_test = $test$plusargs("axi_test") || AXI_TEST;
-
+	
 	initial begin
 		mem_axi_awready = 0;
 		mem_axi_wready = 0;
@@ -335,12 +333,7 @@ module axi4_memory #(
 	reg [4:0] async_axi_transaction = ~0;
 	reg [4:0] delay_axi_transaction = 0;
 
-	always @(posedge clk) begin
-		if (axi_test) begin
-				xorshift64_next;
-				{fast_axi_transaction, async_axi_transaction, delay_axi_transaction} <= xorshift64_state;
-		end
-	end
+	
 
 	reg latched_raddr_en = 0;
 	reg latched_waddr_en = 0;
@@ -385,10 +378,7 @@ module axi4_memory #(
 			mem_axi_rdata <= memory[latched_raddr >> 2];
 			mem_axi_rvalid <= 1;
 			latched_raddr_en = 0;
-		end else begin
-			//$display("OUT-OF-BOUNDS MEMORY READ FROM %08x", latched_raddr);
-			$finish;
-		end
+		end 
 	end endtask
 
 	task handle_axi_bvalid; begin
@@ -400,7 +390,8 @@ module axi4_memory #(
 			if (latched_wstrb[3]) memory[latched_waddr >> 2][31:24] <= latched_wdata[31:24];
 		end else
 		if (latched_waddr == 32'h1000_0000) begin
-				$write("%c", latched_wdata[7:0]);
+				//$write("%c", latched_wdata[7:0])
+				;
 		end else
 		if (latched_waddr == 32'h2000_0000) begin
 			if (latched_wdata == 123456789)
