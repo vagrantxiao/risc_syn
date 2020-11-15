@@ -30,7 +30,7 @@ module testbench #(
 			$dumpvars(0, testbench);
 		end
 		repeat (1000000) @(posedge clk);
-		$display("TIMEOUT");
+		//$display("TIMEOUT");
 		$finish;
 	end
 
@@ -48,7 +48,7 @@ module testbench #(
 					$fwrite(trace_file, "%x\n", trace_data);
 			end
 			$fclose(trace_file);
-			$display("Finished writing testbench.trace.");
+			//$display("Finished writing testbench.trace.");
 		end
 	end
 
@@ -163,16 +163,16 @@ module picorv32_wrapper #(
 
 	picorv32_axi #(
 `ifndef SYNTH_TEST
-`ifdef SP_TEST
-		.ENABLE_REGS_DUALPORT(0),
-`endif
-`ifdef COMPRESSED_ISA
-		.COMPRESSED_ISA(1),
-`endif
-		.ENABLE_MUL(1),
-		.ENABLE_DIV(1),
-		.ENABLE_IRQ(1),
-		.ENABLE_TRACE(1)
+    `ifdef SP_TEST
+            .ENABLE_REGS_DUALPORT(0),
+    `endif
+    `ifdef COMPRESSED_ISA
+            .COMPRESSED_ISA(1),
+    `endif
+            .ENABLE_MUL(1),
+            .ENABLE_DIV(1),
+            .ENABLE_IRQ(1),
+            .ENABLE_TRACE(1)
 `endif
 	) uut (
 		.clk            (clk            ),
@@ -261,12 +261,12 @@ module picorv32_wrapper #(
 `ifndef VERILATOR
 			repeat (10) @(posedge clk);
 `endif
-			$display("TRAP after %1d clock cycles", cycle_counter);
+			//$display("TRAP after %1d clock cycles", cycle_counter);
 			if (tests_passed) begin
-				$display("ALL TESTS PASSED.");
+				//$display("ALL TESTS PASSED.");
 				$finish;
 			end else begin
-				$display("ERROR!");
+				//$display("ERROR!");
 				if ($test$plusargs("noerror"))
 					$finish;
 				$stop;
@@ -383,20 +383,22 @@ module axi4_memory #(
 
 	task handle_axi_rvalid; begin
 		if (verbose)
-			$display("RD: ADDR=%08x DATA=%08x%s", latched_raddr, memory[latched_raddr >> 2], latched_rinsn ? " INSN" : "");
+			//$display("RD: ADDR=%08x DATA=%08x%s", latched_raddr, memory[latched_raddr >> 2], latched_rinsn ? " INSN" : "")
+			;
 		if (latched_raddr < 128*1024) begin
 			mem_axi_rdata <= memory[latched_raddr >> 2];
 			mem_axi_rvalid <= 1;
 			latched_raddr_en = 0;
 		end else begin
-			$display("OUT-OF-BOUNDS MEMORY READ FROM %08x", latched_raddr);
+			//$display("OUT-OF-BOUNDS MEMORY READ FROM %08x", latched_raddr);
 			$finish;
 		end
 	end endtask
 
 	task handle_axi_bvalid; begin
 		if (verbose)
-			$display("WR: ADDR=%08x DATA=%08x STRB=%04b", latched_waddr, latched_wdata, latched_wstrb);
+			//$display("WR: ADDR=%08x DATA=%08x STRB=%04b", latched_waddr, latched_wdata, latched_wstrb)
+			;
 		if (latched_waddr < 128*1024) begin
 			if (latched_wstrb[0]) memory[latched_waddr >> 2][ 7: 0] <= latched_wdata[ 7: 0];
 			if (latched_wstrb[1]) memory[latched_waddr >> 2][15: 8] <= latched_wdata[15: 8];
@@ -406,11 +408,14 @@ module axi4_memory #(
 		if (latched_waddr == 32'h1000_0000) begin
 			if (verbose) begin
 				if (32 <= latched_wdata && latched_wdata < 128)
-					$display("OUT: '%c'", latched_wdata[7:0]);
+					//$display("OUT: '%c'", latched_wdata[7:0])
+					;
 				else
-					$display("OUT: %3d", latched_wdata);
+					//$display("OUT: %3d", latched_wdata)
+					;
 			end else begin
-				$write("%c", latched_wdata[7:0]);
+				$write("%c", latched_wdata[7:0])
+				;
 `ifndef VERILATOR
 				$fflush();
 `endif
@@ -420,7 +425,7 @@ module axi4_memory #(
 			if (latched_wdata == 123456789)
 				tests_passed = 1;
 		end else begin
-			$display("OUT-OF-BOUNDS MEMORY WRITE TO %08x", latched_waddr);
+			//$display("OUT-OF-BOUNDS MEMORY WRITE TO %08x", latched_waddr);
 			$finish;
 		end
 		mem_axi_bvalid <= 1;
